@@ -21,20 +21,16 @@ jobs:
         run: |
           pip install torch safetensors transformers diffusers accelerate huggingface_hub pandas matplotlib
 
-      - name: Download JuggernautXL
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      - name: Download JuggernautXL (No Token)
         run: |
           mkdir -p models
           python <<'PY'
           from huggingface_hub import hf_hub_download
-          import os
 
           hf_hub_download(
               repo_id="RunDiffusion/Juggernaut-XL-v9",
               filename="Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors",
-              local_dir="models",
-              token=os.environ["HF_TOKEN"]
+              local_dir="models"
           )
           PY
 
