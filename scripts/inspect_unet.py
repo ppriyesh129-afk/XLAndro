@@ -1,16 +1,18 @@
-
 from safetensors import safe_open
 import pandas as pd
 import os
 
-MODEL_PATH = "JuggernautXL.safetensors"
+MODEL_PATH = "models/Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors"
+
 os.makedirs("reports", exist_ok=True)
 
 rows = []
 
 with safe_open(MODEL_PATH, framework="pt", device="cpu") as f:
     for key in f.keys():
-        shape = f.get_tensor(key).shape
+        tensor = f.get_tensor(key)
+        shape = list(tensor.shape)
+
         params = 1
         for s in shape:
             params *= s
@@ -22,10 +24,19 @@ with safe_open(MODEL_PATH, framework="pt", device="cpu") as f:
         })
 
 df = pd.DataFrame(rows)
+
 df.to_csv("reports/layers.csv", index=False)
 
-summary = df.groupby(df["tensor"].str.split(".").str[0]).sum(numeric_only=True)
-summary.to_csv("reports/summary.csv")
+summary = (
+    df.assign(component=df["tensor"].str.split(".").str[0])
+      .groupby("component")["parameters"]
+      .sum()
+      .reset_index()
+)
 
-print(df.head())
+summary.to_csv("reports/summary.csv", index=False)
+
+print("\n=== COMPONENT SUMMARY ===")
 print(summary)
+print("\n=== FIRST 20 TENSORS ===")
+print(df.head(20))
